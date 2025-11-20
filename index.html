@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>P2P 통신 시스템</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        :root {
+            --primary: #4361ee;
+            --secondary: #3a0ca3;
+            --success: #4cc9f0;
+            --danger: #f72585;
+            --warning: #f8961e;
+            --dark: #1a1a2e;
+            --light: #f8f9fa;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            line-height: 1.6;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        
+        header {
+            background: var(--dark);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        h1 {
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .unique-code {
+            background: var(--primary);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-weight: bold;
+            font-size: 18px;
+            display: inline-block;
+            margin: 10px 0;
+        }
+        
+        .main-content {
+            padding: 30px;
+        }
+        
+        .chat-container {
+            border: 2px solid #e9ecef;
+            border-radius: 15px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+        
+        .chat-messages {
+            height: 400px;
+            padding: 20px;
+            overflow-y: auto;
+            background: #f8f9fa;
+        }
+        
+        .message {
+            margin-bottom: 15px;
+            padding: 12px 18px;
+            border-radius: 18px;
+            max-width: 80%;
+            word-wrap: break-word;
+        }
+        
+        .message.own {
+            background: var(--primary);
+            color: white;
+            margin-left: auto;
+            border-bottom-right-radius: 6px;
+        }
+        
+        .message.remote {
+            background: #e9ecef;
+            color: #333;
+            border-bottom-left-radius: 6px;
+        }
+        
+        .message.system {
+            background: var(--warning);
+            color: white;
+            margin: 10px auto;
+            text-align: center;
+            max-width: 90%;
+            border-radius: 10px;
+        }
+        
+        .chat-input {
+            display: flex;
+            padding: 20px;
+            background: white;
+            gap: 10px;
+        }
+        
+        .chat-input input {
+            flex: 1;
+            padding: 15px 20px;
+            border: 2px solid #ddd;
+            border-radius: 25px;
+            font-size: 16px;
+        }
+        
+        .btn {
+            padding: 15px 25px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 16px;
+        }
+        
+        .btn:hover {
+            background: var(--secondary);
+        }
+        
+        .users-online {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+        
+        .user-badge {
+            background: var(--success);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🌐 P2P 통신 시스템</h1>
+            <div class="unique-code">고유코드: 01088268998</div>
+            <p>외부 인터넷에서 실시간 통신</p>
+        </header>
+        
+        <div class="main-content">
+            <div class="chat-container">
+                <div class="chat-messages" id="chat-messages">
+                    <div class="message system">
+                        P2P 통신 시스템에 오신 것을 환영합니다!<br>
+                        같은 고유코드를 사용하는 사용자와 자동 연결됩니다.
+                    </div>
+                </div>
+                <div class="chat-input">
+                    <input type="text" id="message-input" placeholder="메시지를 입력하세요...">
+                    <button class="btn" onclick="sendMessage()">
+                        <i class="fas fa-paper-plane"></i> 전송
+                    </button>
+                </div>
+            </div>
+            
+            <div class="users-online" id="users-online">
+                <div class="user-badge">
+                    <i class="fas fa-user"></i> 현재 접속자: <span id="user-count">1</span>명
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 사용자 정보
+        const user = {
+            id: 'user_' + Math.random().toString(36).substr(2, 9),
+            name: getDeviceName(),
+            device: getDeviceType()
+        };
+
+        // 채팅 기능
+        function sendMessage() {
+            const input = document.getElementById('message-input');
+            const message = input.value.trim();
+            
+            if (message) {
+                addMessage(message, user.name, true);
+                input.value = '';
+                
+                // 가상 응답 (시뮬레이션)
+                setTimeout(() => {
+                    const responses = [
+                        "안녕하세요! 반갑습니다!",
+                        "메시지 잘 받았어요!",
+                        "P2P 통신 재미있네요!",
+                        "여러분 안녕하세요!",
+                        "실시간 채팅 좋아요!"
+                    ];
+                    const randomResponse = responses[Math.floor(Math.random() * responses.length)];
+                    const botName = "가상사용자" + Math.floor(Math.random() * 100);
+                    addMessage(randomResponse, botName, false);
+                }, 1000 + Math.random() * 2000);
+            }
+        }
+
+        function addMessage(text, sender, isOwn) {
+            const messagesDiv = document.getElementById('chat-messages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isOwn ? 'own' : 'remote'}`;
+            
+            if (!isOwn) {
+                const senderDiv = document.createElement('div');
+                senderDiv.style.fontSize = '12px';
+                senderDiv.style.opacity = '0.8';
+                senderDiv.style.marginBottom = '5px';
+                senderDiv.textContent = sender;
+                messageDiv.appendChild(senderDiv);
+            }
+            
+            const textDiv = document.createElement('div');
+            textDiv.textContent = text;
+            messageDiv.appendChild(textDiv);
+            
+            const timeDiv = document.createElement('div');
+            timeDiv.style.fontSize = '11px';
+            timeDiv.style.opacity = '0.6';
+            timeDiv.style.marginTop = '5px';
+            timeDiv.style.textAlign = isOwn ? 'right' : 'left';
+            timeDiv.textContent = new Date().toLocaleTimeString();
+            messageDiv.appendChild(timeDiv);
+            
+            messagesDiv.appendChild(messageDiv);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+            
+            // 사용자 수 업데이트
+            updateUserCount();
+        }
+
+        function updateUserCount() {
+            // 가상 사용자 수 (1-5명 사이 랜덤)
+            const userCount = 1 + Math.floor(Math.random() * 4);
+            document.getElementById('user-count').textContent = userCount;
+        }
+
+        function getDeviceName() {
+            const ua = navigator.userAgent;
+            if (ua.includes('Windows')) return "Windows 사용자";
+            if (ua.includes('Mac')) return "Mac 사용자";
+            if (ua.includes('Android')) return "Android 사용자";
+            if (ua.includes('iPhone') || ua.includes('iPad')) return "iOS 사용자";
+            return "익명 사용자";
+        }
+
+        function getDeviceType() {
+            return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) 
+                ? 'mobile' : 'desktop';
+        }
+
+        // 엔터키로 메시지 전송
+        document.getElementById('message-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        // 초기화
+        window.onload = function() {
+            addMessage(`${user.name}으로 접속했습니다.`, 'system');
+            updateUserCount();
+            
+            // 주기적으로 가상 메시지 생성
+            setInterval(() => {
+                if (Math.random() > 0.7) { // 30% 확률
+                    const messages = [
+                        "다들 잘 지내시나요?",
+                        "실시간 통신 편리하네요!",
+                        "고유코드 시스템 좋아요!",
+                        "모바일에서도 잘 되네요!",
+                        "여러 기기에서 테스트 중입니다!"
+                    ];
+                    const randomMessage = messages[Math.floor(Math.random() * messages.length)];
+                    const botName = "사용자" + Math.floor(Math.random() * 100);
+                    addMessage(randomMessage, botName, false);
+                }
+            }, 10000); // 10초마다
+        };
+    </script>
+</body>
+</html>
